@@ -1,0 +1,203 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+// Green Version
+public class Enemy_AI_Bases : MonoBehaviour {
+ 
+    // initialaztion variables
+
+	// Position of the player into a variable
+    public Transform player;
+
+	// Text data for testing
+    public Text data;
+
+	// Placeholder for the fire object
+    public GameObject fire;
+
+	// health variable set
+    int Health = 100;
+
+	// The mouth object properties
+    public GameObject mouth;
+
+	// time variable set
+	float time;
+
+	// properites of the fireball object
+    public GameObject fireball_shot;
+
+	// distance variable set
+	public float dis;
+
+	// speed variable set
+	public float speed = 1;
+
+	// variable for keeping y and z position
+	public Vector3 locked_pos;
+	// Use this for initialization
+	void Start ()
+	{
+		locked_pos = transform.position;
+	}
+
+
+	void Update ()
+	{
+
+		// distance check
+		dis = Vector3.Distance(transform.position, player.transform.position);
+        
+        // simulation for being damaged *Test*
+        if (dis <= 5)
+        {
+            Health -= 1;
+        }
+
+		
+		// displays health *TEST*
+		data.text = "Enemy Health: " + Health.ToString();
+
+        //if below health of 0, then die
+        if (Health <= 0)
+        {
+			Destroy(gameObject);
+			Destroy(mouth);
+		}
+
+
+		// Modes depending on health
+		if (Health <= 100 &&  Health >= 80)
+		{
+			easy();
+		}
+
+        if (Health <= 80 && Health >= 45) 
+		{
+			InControl();
+		}
+
+        if (Health <= 45 && Health >= 10)
+		{
+			Aggressive();
+		}
+
+		if (Health <= 10 && Health >= 0)
+		{
+			retreat();
+		}
+	
+		transform.LookAt(temp);
+
+		// adjusted to fit the character and set at the right angle ( ADjustable )
+		transform.Rotate(176.806f, 0f, 0f);
+		// mouth to follow the enemy at all times ( to stay consistant)
+		mouth.transform.position = transform.position;
+		mouth.transform.rotation = transform.rotation;
+
+	}
+
+	void retreat()
+	{
+		// one last attempt to live
+		if (dis <= 60)
+		{
+         travel(-0.5f);
+		}
+          shoot(0.1f, 1f);
+    }
+
+	void Aggressive()
+	{
+		// determine to fight and do Alotta damage
+		if (dis <= 30 && dis >= 0)
+		{ 
+			travel(-0.4f);
+		}
+
+		if (dis <= 80 && dis >= 50)
+		{ 
+			travel(0.4f);
+		}
+
+         shoot(0.5f, 0.5f);
+		
+	}
+
+	void InControl()
+	{
+         shoot(2f, 0.5f);
+		
+
+		if (dis <= 40 && dis >= 0)
+		{ // get away
+			travel(-0.4f);
+		}
+
+		if (dis <= 90 && dis >= 40)
+		{ // get close
+			travel(0.4f);
+		}
+
+	}
+
+	void easy()
+	{
+		// shoot now and then and be slow
+		if (dis <= 100 && dis >=60)
+		{ // get close
+			travel(0.1f);
+		}
+
+		if (dis >= 0 && dis <= 40)
+		{  // get away
+			travel(-0.3f);
+		}
+            shoot(1f, 2f);
+	   }
+
+	// the time, then the speed
+    void shoot(float chosen_time, float chosen_speed)
+	{
+		if (time <= 0)
+		{
+			// destroy the current fireball and get ready for a new one
+			Destroy(fireball_shot);
+
+			// the number input here is the time
+			time = chosen_time;
+
+			// Creates the object and makes it look towards the player
+			fireball_shot = Instantiate(fire, transform.position, transform.rotation);
+
+			// now look at player
+			fireball_shot.transform.LookAt(player);
+
+		}
+		else
+		{
+			// ticks 1 from time every second time is not at zero
+			time -= 1 * Time.deltaTime;
+		}
+
+		// makes it go at a specfic set direction
+		fireball_shot.transform.position += fireball_shot.transform.forward * chosen_speed;
+
+
+
+	}
+	
+	// just asks for given speed
+	void travel(float speed_given)
+	{
+		// creates a temporary vector3 with the wished positions
+		Vector3 temp = Vector3.MoveTowards(transform.position, player.position, 1 * speed_given);
+
+		// now gets the wished postitions ( but only for x) and the y and z are not meant to change
+		transform.position = new Vector3(temp.x, locked_pos.y, locked_pos.z);
+		
+
+		// arath.p
+	}
+}
